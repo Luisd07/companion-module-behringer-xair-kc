@@ -21,6 +21,7 @@ import {
 } from './meters.js'
 import { GetMeterVariableDefinitions, GetMeterVariableValues } from './kc-meter-variables.js'
 import { GetMeterFeedbacks, METER_FEEDBACK_IDS } from './kc-meter-feedbacks.js'
+import { busSendNamePath, labelWithName, STRIP_NAME_PATH } from './kc-names.js'
 import os from 'os'
 
 class BAirInstance extends InstanceBase {
@@ -168,6 +169,10 @@ class BAirInstance extends InstanceBase {
 	// When module gets deleted
 	async destroy() {
 		this.stopMeters()
+		if (this.nameRefreshTimer) {
+			clearTimeout(this.nameRefreshTimer)
+			delete this.nameRefreshTimer
+		}
 		if (this.heartbeat) {
 			clearInterval(this.heartbeat)
 			delete this.heartbeat
@@ -597,6 +602,8 @@ class BAirInstance extends InstanceBase {
 							// no name, use behringer default
 							v = v == '' ? this.xStat[node].defaultName : v
 							this.xStat[node].name = v
+							// KartChaser: show the new name in dropdowns
+							if (STRIP_NAME_PATH.test(node)) this.queueNameRefresh()
 							this.setVariableValues({ [this.xStat[node].fbID]: v })
 							if ('-snap' == top) {
 								let num = parseInt(node.split('/')[2])
@@ -758,6 +765,25 @@ class BAirInstance extends InstanceBase {
 		this.lastMeter = Date.now()
 	}
 
+	// KartChaser: names arrive one message at a time (all at once on connect), so rebuild once they settle
+	queueNameRefresh() {
+		if (this.nameRefreshTimer) clearTimeout(this.nameRefreshTimer)
+		this.nameRefreshTimer = setTimeout(() => {
+			delete this.nameRefreshTimer
+			this.refreshNamedChoices()
+		}, 500)
+	}
+
+	// KartChaser: relabel dropdowns with the names set on the mixer, e.g. "Monitor A (Bus 1)"
+	refreshNamedChoices() {
+		for (const opt of this.busOpts ?? []) {
+			const b = Number(opt.id)
+			opt.label = labelWithName(this, busSendNamePath(b), b < 7 ? `Bus ${b}` : `FX ${b - 6}`)
+		}
+		this.setActionDefinitions(this.actionDefs)
+		this.buildStaticFeedbacks(this)
+	}
+
 	// KartChaser: start publishing meter readings; frames arrive in the 'raw' listener.
 	startMeters() {
 		this.stopMeters()
@@ -888,7 +914,7 @@ class BAirInstance extends InstanceBase {
 		Object.assign(feedbacks, this.muteFeedbacks)
 		Object.assign(feedbacks, this.colorFeedbacks)
 		Object.assign(feedbacks, this.meterFeedbacks)
-		Object.assign(feedbacks, GetMeterFeedbacks(this.xairMeters))
+		Object.assign(feedbacks, GetMeterFeedbacks(this, this.xairMeters))
 		Object.assign(feedbacks, this.haFeedbacks)
 		this.setFeedbackDefinitions(feedbacks)
 	}

@@ -1,29 +1,35 @@
 import { formatMeterDb } from './meters.js'
 import { pad0 } from './helpers.js'
+import { channelNamePath, labelWithName } from './kc-names.js'
 
 // KartChaser: everything present in /meters/1. Stereo sources get a combined target (loudest side) plus L and R.
 function buildMeterTargets() {
 	const targets = []
-	const stereo = (id, name, left) => {
-		targets.push({ id, name, indices: [left, left + 1] })
-		targets.push({ id: `${id}_l`, name: `${name} L`, indices: [left] })
-		targets.push({ id: `${id}_r`, name: `${name} R`, indices: [left + 1] })
+	const stereo = (id, name, left, namePath) => {
+		targets.push({ id, name, indices: [left, left + 1], namePath })
+		targets.push({ id: `${id}_l`, name: `${name} L`, indices: [left], namePath })
+		targets.push({ id: `${id}_r`, name: `${name} R`, indices: [left + 1], namePath })
 	}
 
 	for (let i = 0; i < 16; i++) {
-		targets.push({ id: `ch_${pad0(i + 1)}`, name: `Channel ${i + 1}`, indices: [i] })
+		targets.push({ id: `ch_${pad0(i + 1)}`, name: `Channel ${i + 1}`, indices: [i], namePath: channelNamePath(i + 1) })
 	}
-	stereo('aux', 'USB / Aux', 16)
+	stereo('aux', 'USB / Aux', 16, '/rtn/aux/config/name')
 	for (let i = 0; i < 4; i++) {
-		stereo(`rtn_${i + 1}`, `FX Return ${i + 1}`, 18 + i * 2)
+		stereo(`rtn_${i + 1}`, `FX Return ${i + 1}`, 18 + i * 2, `/rtn/${i + 1}/config/name`)
 	}
 	for (let i = 0; i < 6; i++) {
-		targets.push({ id: `bus_${i + 1}`, name: `Bus ${i + 1}`, indices: [26 + i] })
+		targets.push({ id: `bus_${i + 1}`, name: `Bus ${i + 1}`, indices: [26 + i], namePath: `/bus/${i + 1}/config/name` })
 	}
 	for (let i = 0; i < 4; i++) {
-		targets.push({ id: `fxsend_${i + 1}`, name: `FX Send ${i + 1}`, indices: [32 + i] })
+		targets.push({
+			id: `fxsend_${i + 1}`,
+			name: `FX Send ${i + 1}`,
+			indices: [32 + i],
+			namePath: `/fxsend/${i + 1}/config/name`,
+		})
 	}
-	stereo('lr', 'Main Out', 36)
+	stereo('lr', 'Main Out', 36, '/lr/config/name')
 	stereo('mon', 'Monitor Out', 38)
 	return targets
 }
@@ -31,6 +37,14 @@ function buildMeterTargets() {
 export const METER_TARGETS = buildMeterTargets()
 
 const targetsById = new Map(METER_TARGETS.map((t) => [t.id, t]))
+
+/**
+ * Dropdown choices, labelled with the names set on the mixer
+ * @param {object} self - module instance
+ */
+export function GetMeterTargetChoices(self) {
+	return METER_TARGETS.map((t) => ({ id: t.id, label: labelWithName(self, t.namePath, t.name) }))
+}
 
 /** @param {string} id */
 export function getMeterTarget(id) {

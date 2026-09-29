@@ -1,6 +1,6 @@
 import { combineRgb } from '@companion-module/base'
 import { formatMeterDb, METER_FLOOR_DB } from './meters.js'
-import { getMeterTarget, METER_TARGETS } from './kc-meter-variables.js'
+import { getMeterTarget, GetMeterTargetChoices } from './kc-meter-variables.js'
 
 // KartChaser: live meter feedbacks, re-evaluated by index.js each time a new meter reading is published.
 export const METER_FEEDBACK_IDS = ['meter_level', 'meter_level_compare']
@@ -26,9 +26,10 @@ function compareNumber(target, comparitor, currentValue) {
 }
 
 /**
+ * @param {object} self - module instance
  * @param {import('./meters.js').XAirMeters} meters
  */
-export function GetMeterFeedbacks(meters) {
+export function GetMeterFeedbacks(self, meters) {
 	const getLevelDb = (target) => meters.getLevelDb(getMeterTarget(target)?.indices)
 
 	const targetOption = {
@@ -36,7 +37,7 @@ export function GetMeterFeedbacks(meters) {
 		label: 'Target',
 		id: 'target',
 		default: 'lr',
-		choices: METER_TARGETS.map((t) => ({ id: t.id, label: t.name })),
+		choices: GetMeterTargetChoices(self),
 	}
 
 	return {

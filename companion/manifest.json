@@ -1,7 +1,7 @@
 {
 	"$schema": "../node_modules/@companion-module/base/assets/manifest.schema.json",
 	"id": "behringer-xair-kc",
-	"name": "behringer-xair-kc",
+	"name": "Behringer XAir KC",
 	"shortname": "xairkc",
 	"description": "KartChaser fork of the Midas MR / Behringer XR (XAir) module, with live meter (dBFS) feedbacks",
 	"version": "0.0.0",
@@ -21,7 +21,19 @@
 		"apiVersion": "0.0.0",
 		"entrypoint": "../index.js"
 	},
-	"manufacturer": "Behringer/Midas",
-	"products": ["XR/MR", "XAir", "XR12", "XR16", "X18", "XR18", "MAir", "MR12", "MR16", "MR18", "M18"],
-	"keywords": ["Audio", "Mixer", "Console"]
+	"manufacturer": "Behringer/Midas KC",
+	"products": [
+		"XR/MR KC",
+		"XAir KC",
+		"XR12 KC",
+		"XR16 KC",
+		"X18 KC",
+		"XR18 KC",
+		"MAir KC",
+		"MR12 KC",
+		"MR16 KC",
+		"MR18 KC",
+		"M18 KC"
+	],
+	"keywords": ["Audio", "Mixer", "Console", "KartChaser"]
 }

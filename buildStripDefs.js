@@ -62,6 +62,8 @@ export function buildStripDefs(self) {
 			id: b,
 		})
 	}
+	// KartChaser: labels get the mixer's names in index.js
+	self.busOpts = busOpts
 
 	function sendLabel(d, min, max) {
 		return d + (min == 0 ? '' : ' ' + min + '-' + max)

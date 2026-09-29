@@ -12,6 +12,9 @@
 >   `meter_fxsend_1`…`4`, `meter_lr`, `meter_mon` — same readings, usable in any text. Stereo sources read the
 >   louder side; add `_l` / `_r` (e.g. `meter_lr_l`) for one side.
 >
+> Dropdowns for meter targets and bus sends show the names set on the mixer, e.g. `Monitor A (Bus 1)`, and update
+> when a name is changed on the mixer.
+>
 > Readings show `-inf` when silent and `-` when the mixer is not sending meters. The refresh rate is set in the
 > connection config (default 10 per second); each reading is the peak since the previous refresh.
 
