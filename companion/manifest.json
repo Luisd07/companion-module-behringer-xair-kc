@@ -1,0 +1,27 @@
+{
+	"$schema": "../node_modules/@companion-module/base/assets/manifest.schema.json",
+	"id": "behringer-xair-kc",
+	"name": "behringer-xair-kc",
+	"shortname": "xairkc",
+	"description": "KartChaser fork of the Midas MR / Behringer XR (XAir) module, with live meter (dBFS) feedbacks",
+	"version": "0.0.0",
+	"license": "MIT",
+	"repository": "git+https://github.com/Luisd07/companion-module-behringer-xair-kc.git",
+	"bugs": "https://github.com/Luisd07/companion-module-behringer-xair-kc/issues",
+	"maintainers": [
+		{
+			"name": "Luis Diaz",
+			"email": "luimd0728@gmail.com"
+		}
+	],
+	"legacyIds": [],
+	"runtime": {
+		"type": "node22",
+		"api": "nodejs-ipc",
+		"apiVersion": "0.0.0",
+		"entrypoint": "../index.js"
+	},
+	"manufacturer": "Behringer/Midas",
+	"products": ["XR/MR", "XAir", "XR12", "XR16", "X18", "XR18", "MAir", "MR12", "MR16", "MR18", "M18"],
+	"keywords": ["Audio", "Mixer", "Console"]
+}
