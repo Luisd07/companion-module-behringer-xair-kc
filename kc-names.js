@@ -2,7 +2,7 @@
 import { pad0 } from './helpers.js'
 
 /** Name changes on these strips mean the dropdown labels need rebuilding */
-export const STRIP_NAME_PATH = /^\/(ch|rtn|bus|fxsend|lr)\/(.+\/)?config\/name$/
+export const STRIP_NAME_PATH = /^\/(ch|rtn|bus|fxsend|dca|lr)\/(.+\/)?config\/name$/
 
 /**
  * @param {object} self - module instance

@@ -22,6 +22,7 @@ import {
 import { GetMeterVariableDefinitions, GetMeterVariableValues } from './kc-meter-variables.js'
 import { GetMeterFeedbacks, METER_FEEDBACK_IDS } from './kc-meter-feedbacks.js'
 import { busSendNamePath, labelWithName, STRIP_NAME_PATH } from './kc-names.js'
+import { applyNamedPickers, refreshNamedPickers } from './kc-named-pickers.js'
 import os from 'os'
 
 class BAirInstance extends InstanceBase {
@@ -125,6 +126,8 @@ class BAirInstance extends InstanceBase {
 		buildHADefs(this)
 
 		//buildHeadampDefs(this)
+		// KartChaser: pick strips from dropdowns showing the mixer's names
+		applyNamedPickers(this)
 		this.setActionDefinitions(this.actionDefs)
 		this.buildStaticFeedbacks(this)
 		this.buildStaticVariables()
@@ -780,6 +783,7 @@ class BAirInstance extends InstanceBase {
 			const b = Number(opt.id)
 			opt.label = labelWithName(this, busSendNamePath(b), b < 7 ? `Bus ${b}` : `FX ${b - 6}`)
 		}
+		refreshNamedPickers(this)
 		this.setActionDefinitions(this.actionDefs)
 		this.buildStaticFeedbacks(this)
 	}
