@@ -1,7 +1,7 @@
 'use strict'
 import { defStrip } from './defStrip.js'
 import { combineRgb, InstanceStatus, Regex } from '@companion-module/base'
-import { pad0, unSlash, setToggle, fadeTo } from './helpers.js'
+import { pad0, unSlash, setToggle, fadeTo, dbToFader, parseDb } from './helpers.js'
 import { graphics } from 'companion-module-utils'
 
 // build the channel strip actions/feedbaks/variables
@@ -69,6 +69,17 @@ export function buildStripDefs(self) {
 		return d + (min == 0 ? '' : ' ' + min + '-' + max)
 	}
 
+	// 'Set' level actions take dB text (variables allowed); convert to the mixer float
+	async function resolveFad(opt) {
+		if (opt.fad === undefined) return
+		const txt = await self.parseVariablesInString(`${opt.fad}`)
+		const d = parseDb(txt)
+		if (Number.isNaN(d)) {
+			throw new Error(`Invalid fader level '${txt}' (use dB, e.g. -20 or -inf)`)
+		}
+		opt.fad = dbToFader(d)
+	}
+
 	function makeLevelActions(id, aLabel, aId, theStrip) {
 		for (let sfx of self.levelOpts) {
 			const newName = aLabel + ' Level ' + sfx.act
@@ -119,6 +130,7 @@ export function buildStripDefs(self) {
 						const nVal = opt.type == '/ch/' ? pad0(opt.num) : opt.num
 						const strip = opt.type + nVal + (opt.type == '/dca/' ? '/fader' : '/mix/fader')
 						try {
+							await resolveFad(opt)
 							let fVal = await fadeTo(aId, strip, opt, self)
 
 							if ('_s' != aId.slice(-2)) {
@@ -138,6 +150,7 @@ export function buildStripDefs(self) {
 						const opt = action.options
 						const aId = action.actionId
 						try {
+							await resolveFad(opt)
 							let fVal = await fadeTo(aId, strip, opt, self)
 							self.updateStatus(InstanceStatus.Ok)
 							self.paramError = false
@@ -174,6 +187,7 @@ export function buildStripDefs(self) {
 						const bVal = pad0(opt.busNum)
 						const strip = opt.type + nVal + 'mix/' + bVal + '/level'
 						try {
+							await resolveFad(opt)
 							let fVal = await fadeTo(aId, strip, opt, self)
 
 							if ('_s' != aId.slice(-2)) {
@@ -191,11 +205,13 @@ export function buildStripDefs(self) {
 					switch (sfx.op) {
 						case '':
 							levelActions[newId].options.push({
-								type: 'dropdown',
-								label: 'Fader Level',
+								type: 'textinput',
+								useVariables: true,
+								tooltip:
+									'Level in dB (-90 to +10), or -inf for off. Variables allowed, e.g. $(internal:custom_duck_level)',
+								label: 'Fader Level (dB)',
 								id: 'fad',
-								default: '0.0',
-								choices: self.FADER_VALUES,
+								default: '0',
 							})
 							break
 						case '_a':

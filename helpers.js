@@ -15,6 +15,51 @@ export function linFaderToDB(f, lim = { fmin: -12, fmax: 20 }) {
 }
 
 /**
+ * Convert a dB value to the X-Air fader/send float (0..1)
+ * 	using the mixer's 4-segment fader law. Clamps to [-oo, +10]
+ * @param {number} d - dB value, -Infinity for off
+ * @returns {float}
+ */
+export function dbToFader(d) {
+	if (!(d > -90)) return 0
+	if (d >= 10) return 1
+	if (d >= -10) return (d + 30) / 40
+	if (d >= -30) return (d + 50) / 80
+	if (d >= -60) return (d + 70) / 160
+	return (d + 90) / 480
+}
+
+/**
+ * Parse a user entered dB string ('-20', '-20 dB', '+3', '-inf', '-oo')
+ * @param {string} s
+ * @returns {number} dB value (-Infinity for off) or NaN if invalid
+ */
+export function parseDb(s) {
+	const t = String(s)
+		.trim()
+		.toLowerCase()
+		.replace(/\s*db$/, '')
+	if (['-inf', '-oo', '-∞', '- ∞', 'inf', 'off'].includes(t)) return -Infinity
+	return t === '' ? NaN : Number(t)
+}
+
+/**
+ * Convert an X-Air fader float (0..1) to a dB string for display / options
+ * @param {float} f
+ * @returns {string}
+ */
+export function faderToDbString(f) {
+	f = parseFloat(f)
+	if (!(f > 0)) return '-inf'
+	let d
+	if (f >= 0.5) d = f * 40 - 30
+	else if (f >= 0.25) d = f * 80 - 50
+	else if (f >= 0.0625) d = f * 160 - 70
+	else d = f * 480 - 90
+	return String(Math.round(d * 10) / 10)
+}
+
+/**
  * Returns the passed integer left-padded with '0's
  * Will truncate result length is greater than 'len'
  * @param {number} num - number to pad

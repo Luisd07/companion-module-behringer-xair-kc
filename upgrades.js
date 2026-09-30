@@ -1,6 +1,7 @@
 import { CreateConvertToBooleanFeedbackUpgradeScript } from '@companion-module/base'
 import { combineRgb } from '@companion-module/base'
 import { ICON_SOLO } from './icons.js'
+import { faderToDbString } from './helpers.js'
 
 export const UpgradeScripts = [
 	// grab these values for later
@@ -151,6 +152,23 @@ export const UpgradeScripts = [
 			}
 			if (changed) {
 				result.updatedFeedbacks.push(fb)
+			}
+		}
+		return result
+	},
+
+	// KartChaser: Level Set 'fad' changed from a float dropdown to dB text
+	function (context, props) {
+		const result = {
+			updatedConfig: null,
+			updatedActions: [],
+			updatedFeedbacks: [],
+		}
+
+		for (let action of props.actions) {
+			if (['fad', 'send', 'mFad', 'usbFad'].includes(action.actionId) && action.options.fad !== undefined) {
+				action.options.fad = faderToDbString(action.options.fad)
+				result.updatedActions.push(action)
 			}
 		}
 		return result
