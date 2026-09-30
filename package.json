@@ -20,7 +20,7 @@
 			"prettier --write"
 		],
 		"*.{js,mjs}": [
-			"yarn lint:raw --fix"
+			"eslint --ignore-pattern pkg --fix"
 		]
 	},
 	"engines": {
