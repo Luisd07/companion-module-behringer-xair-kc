@@ -207,8 +207,7 @@ export function buildStripDefs(self) {
 							levelActions[newId].options.push({
 								type: 'textinput',
 								useVariables: true,
-								tooltip:
-									'Level in dB (-90 to +10), or -inf for off. Variables allowed, e.g. $(internal:custom_duck_level)',
+								tooltip: 'Level in dB (-90 to +10), or -inf for off. Variables and math allowed.',
 								label: 'Fader Level (dB)',
 								id: 'fad',
 								default: '0',

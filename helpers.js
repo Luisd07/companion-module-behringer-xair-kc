@@ -30,17 +30,80 @@ export function dbToFader(d) {
 }
 
 /**
- * Parse a user entered dB string ('-20', '-20 dB', '+3', '-inf', '-oo')
+ * Parse a user entered dB string or arithmetic expression
+ * 	('-20', '-20 dB', '+3', '-inf', '-18 - 6', '(-20 + 3) * 2')
+ * 	Supports + - * / and parentheses. 'dB' units are ignored,
+ * 	'inf' / 'oo' / '∞' mean infinity, 'off' means -inf.
  * @param {string} s
  * @returns {number} dB value (-Infinity for off) or NaN if invalid
  */
 export function parseDb(s) {
-	const t = String(s)
-		.trim()
-		.toLowerCase()
-		.replace(/\s*db$/, '')
-	if (['-inf', '-oo', '-∞', '- ∞', 'inf', 'off'].includes(t)) return -Infinity
-	return t === '' ? NaN : Number(t)
+	const t = String(s).trim().toLowerCase()
+	if (t == 'off') return -Infinity
+
+	// tokenize
+	const tokens = []
+	const re = /\s*(?:(\d+\.?\d*|\.\d+)|(inf|oo|∞)|(db)|([-+*/()]))/y
+	let m
+	while (re.lastIndex < t.length) {
+		if (!(m = re.exec(t))) {
+			if (/^\s*$/.test(t.slice(re.lastIndex))) break
+			return NaN
+		}
+		if (m[1]) tokens.push(Number(m[1]))
+		else if (m[2]) tokens.push(Infinity)
+		else if (m[4]) tokens.push(m[4])
+		// m[3] 'db' unit: ignored
+	}
+	if (tokens.length == 0) return NaN
+
+	// recursive descent: expr = term (+|- term)*, term = unary (*|/ unary)*, unary = (+|-) unary | atom
+	let pos = 0
+	const peek = () => tokens[pos]
+	function expr() {
+		let v = term()
+		while (peek() == '+' || peek() == '-') {
+			v = tokens[pos++] == '+' ? v + term() : v - term()
+		}
+		return v
+	}
+	function term() {
+		let v = unary()
+		while (peek() == '*' || peek() == '/') {
+			v = tokens[pos++] == '*' ? v * unary() : v / unary()
+		}
+		return v
+	}
+	function unary() {
+		if (peek() == '-') {
+			pos++
+			return -unary()
+		}
+		if (peek() == '+') {
+			pos++
+			return unary()
+		}
+		return atom()
+	}
+	function atom() {
+		const tok = tokens[pos++]
+		if (typeof tok == 'number') return tok
+		if (tok == '(') {
+			const v = expr()
+			if (tokens[pos++] != ')') throw new Error('missing )')
+			return v
+		}
+		throw new Error('unexpected token')
+	}
+
+	try {
+		const v = expr()
+		// leftovers, or a result that can't be a fader level (+inf, NaN)
+		if (pos != tokens.length || Number.isNaN(v) || v == Infinity) return NaN
+		return v
+	} catch {
+		return NaN
+	}
 }
 
 /**
